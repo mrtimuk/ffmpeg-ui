@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family:Georgia }
+fieldset { border-radius:6px; padding:10px; }
+label {  display: inline-block; }
+input, select { margin-bottom: 6px; padding:2px; border-radius: 4px; border: 1px solid #88d; }
+input[type=text] { padding-left:7px; }
+.fixLabel { width: 80px; }
+
+#out { 
+	background:#333;
+	color:white;
+	padding:7px 7px 7px 27px;
+	text-indent:-15px;
+	font-family:Courier New;
+	border-radius:3px;
+}
+.hilight {
+	color: #fe4;
+}
+
+</style>
+</head>
+
+<body>
+<h1>FFMPEG Parameters</h1>
+
+<fieldset>
+<legend>Parameters</legend>
+<div>
+	<div style="float:left; width: 250px;">
+		<label for="inputFile" class="fixLabel">Input file</label> <input type="text" id="inputFile" value="IN" onkeyup="update()">
+	</div>
+	<div style="float:left; width: 185px">
+		<label for="inFormat" class="fixLabel">Format</label> 
+		<select id="inFormat" onchange="update()" style="width:95px;">
+			<option selected value="">Auto</option>
+			<option value="mulaw">uLaw</option>
+		</select><br>
+		<label for="inSampleRate" class="fixLabel">Sample rate</label> 
+		<input id="inSampleRate" type="text" value="" placeholder="Auto" style="width:65px" onkeyup="update()"> Hz<br>
+		<label for="inChannels" class="fixLabel">Channels</label> 
+		<select id="inChannels" onchange="update()" style="width:95px;">
+			<option selected value="">Auto</option>
+			<option value="1">Mono</option>
+			<option value="2">Stereo</option>
+		</select>
+	</div>
+</div>
+<div style="clear:both;"></div>
+<div style="margin-top:25px;">
+	<div style="float:left; width: 250px">
+		<label for="outputFile" class="fixLabel">Output file</label> <input type="text" id="outputFile" value="OUT" onkeyup="update()">
+	</div>
+	<div style="float:left; width: 185px">
+		<label for="outCode" class="fixLabel">Codec</label>
+		<select id="outCodec" onchange="update()" style="width:95px;">
+			<option selected value="">Auto</option>
+			<option value="pcm_u8">PCM U8</option>
+			<option value="pcm_s16le">PCM S16 LE</option>
+			<option value="pcm_s32le">PCM S32 LE</option>
+			<option value="libmp3lame">MP3</option>
+		</select><br>
+		
+		<label for="outChannels" class="fixLabel">Quality</label> 
+		<!-- VBR -->
+		<select id="outQuality" onchange="update()" style="width:95px;">
+			<option value="0">0 (highest)</option>
+			<option value="1">1</option>
+			<option value="2">2</option>
+			<option value="3">3</option>
+			<option selected value="">4 (default)</option>
+			<option value="5">5</option>
+			<option value="6">6</option>
+			<option value="7">7</option>
+			<option value="8">8</option>
+			<option value="9">9 (lowest)</option>
+		</select><br>
+		<!-- CBR/ABR  8k, 16k, 24k, 32k, 40k, 48k, 64k, 80k, 96k, 112k, 128k, 160k, 192k, 224k, 256k, or 320k 
+		Uses -b:a instead of -qscale:a
+		<label for="outChannels">Bitrate</label> 
+		<select id="outBitRate" onchange="update()" style="width:90px;">
+			<option value="8k">8Kbps</option>
+			<option value="16k">16Kbps</option>
+			<option value="24k">24Kbps</option>
+			<option value="32k">32Kbps</option>
+			<option value="48k">48Kbps(default)</option>
+			<option value="64k">64Kbps</option>
+			<option value="80k">80Kbps</option>
+			<option value="96k">96Kbps</option>
+			<option value="112k">112Kbps</option>
+			<option value="128k">128Kbps</option>
+			<option value="160k">128Kbps</option>
+			<option value="192k">192Kbps</option>
+			<option value="224k">224Kbps</option>
+			<option value="256k">256Kbps</option>
+			<option value="320k">320Kbps</option>
+			</select>
+		-->
+		<label for="outChannels" class="fixLabel">Channels</label> 
+		<select id="outChannels" onchange="update()" style="width:95px;">
+			<option selected value="">Auto</option>
+			<option value="1">Mono</option>
+			<option value="2">Stereo</option>
+			<option value="3">3.0</option>
+			</select><br>
+		<input id="forceOverwrite" onchange="update()" type="checkbox">
+		<label for="forceOverwrite">Overwrite output files</label>
+	</div>
+</div>
+</fieldset>
+
+<div style="margin-top:20px;">
+<label>Command:</label>
+<div id="out">&nbsp;</div>
+</div>
+
+<script>
+
+function highlight(el) {
+	return '<span class="hilight">'+el+'</span>';
+}
+
+function removeTransition(e) {
+	if (e.propertyName === 'transform')
+		this.classList.remove('hilight');
+}
+
+var inForceOverwrite = document.querySelector("#forceOverwrite");
+function renderOverwrite() {
+	var forceOverwriteOpt = inForceOverwrite.checked ? "-y" : "-n";	// default ask
+	var focused = document.activeElement == inForceOverwrite;
+	return focused ? highlight(forceOverwriteOpt) : forceOverwriteOpt;
+
+}
+var inInFile = document.querySelector("#inputFile");
+function renderInFile()
+{
+	var inputFile = inInFile.value;
+	var focused = document.activeElement == inInFile;
+	return focused ? highlight("-i "+inputFile) : "-i "+inputFile;
+}
+
+var inInFormat = document.querySelector("#inFormat");
+
+var inInSampleRate = document.querySelector("#inSampleRate");
+
+var inInChannels = document.querySelector("#inChannels");
+
+var inOutFile = document.querySelector("#outputFile");
+
+var inOutCodec = document.querySelector("#outCodec");
+
+var inOutQuality = document.querySelector("#outQuality");
+
+var inOutChannels = document.querySelector("#outChannels");
+
+var divOut = document.querySelector("#out");
+function update() {
+	var inFormat = inInFormat.value;
+	var inSampleRate = inInSampleRate.value;
+	var disableStdin = false;
+
+	var outputFile = inOutFile.value;
+	var dontWriteStats = false;
+
+	var outChannels = inOutChannels.value;
+	var outSampleRate = null;
+	var outCodec = inOutCodec.value; // pcm_u8, pcm_s16le, pcm_s32le
+	var outQuality = inOutQuality.value;
+	if (outQuality == 4) outQuality = null;
+	
+	var cmd = "ffmpeg "
+
+	// Input
+	if (inFormat) cmd += "-f " + inFormat + " ";
+	if (inSampleRate) cmd += "-sample_rate " + inSampleRate + " ";
+	cmd += renderInFile() + " ";
+
+	// Output
+	if (outChannels) cmd += "-ac " + outChannels + " ";
+	if (outSampleRate) cmd += "-ar " + outSampleRate + " ";
+	if (outCodec) cmd += "-acodec " + outCodec + " ";
+	if (outQuality) cmd += "-qscale:a " + outQuality + " ";
+	cmd += renderOverwrite() + " ";
+	cmd += dontWriteStats ? "-nostats " : "";			// default -stats
+	cmd += disableStdin ? "-nostdin " : "";				// default -stdin
+	cmd += outputFile;
+
+	divOut.innerHTML = cmd;
+}
+update();
+
+
+</script>
+</body>
+</html>
